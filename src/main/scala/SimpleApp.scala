@@ -9,4 +9,10 @@ object SimpleAPP extends App {
     .master("local[*]")
     .getOrCreate()
 
+  val firstdf =spark
+    .read
+    .option("header",true)
+    .csv("src/main/data/30-70cancerChdEtc.csv")
+  firstdf.show()
+
 }
