@@ -1,7 +1,6 @@
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.monotonically_increasing_id
-import org.apache.spark.sql.types.{StringType, StructType}
+import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.functions.{first, monotonically_increasing_id}
+
 
 object SimpleAPP extends App {
   val spark = SparkSession
@@ -16,17 +15,33 @@ object SimpleAPP extends App {
    *
    *  @return DataFrame
    */
-  def clean_data (str:String,str_2:String): DataFrame={
+  def clean_data (str:String,str_2:String=""): DataFrame={
     val tmp_df = spark
       .read
       .option("header", true)
       .csv("src/main/data/%s" format str)
-      .drop("Indicator")
-    val tmp_df_year=tmp_df.filter(tmp_df("Period")==="2016")
-    tmp_df_year.withColumnRenamed("First Tooltip","%s" format str_2)
+      //.drop("Indicator")
+    //val tmp_df_year=tmp_df.filter(tmp_df("Period")==="2016")
+    //tmp_df_year.withColumnRenamed("First Tooltip","%s" format str_2)
+    val size_df = tmp_df.columns.size
+    size_df match{
+      case 6 =>
+        tmp_df
+          .filter(tmp_df("Indicator")==="Ambient and household air pollution attributable death rate (per 100 000 population, age-standardized)")
+          .filter(tmp_df("Dim1")==="Male"||tmp_df("Dim1")==="Female")
+      case _ =>
+        val tmp_df_year=tmp_df
+          .filter(tmp_df("Period")==="2016")
+          .drop("Indicator")
+        tmp_df_year.withColumnRenamed("First Tooltip","%s" format str_2)
+    }
 
   }
-
+  /**
+   * merge_df
+   *
+   *  @return DataFrame
+   */
   def merge_df ():DataFrame={
     val tmp_1= clean_data("mortalityRateUnsafeWash.csv","Mortality UnsafeW 100K")
       .sort("Location") //Load first csv
@@ -47,8 +62,14 @@ object SimpleAPP extends App {
 
 
 
-  merge_df().show()
+  def turn_df(): DataFrame={
+    val df=clean_data("airPollutionDeathRate.csv")
+    df.groupBy("Location")
+      .pivot("Dim2")
+      .agg(first("Dim2"))
 
+  }
 
+  println(turn_df())
 }
 
