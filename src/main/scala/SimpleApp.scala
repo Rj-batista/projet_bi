@@ -1,5 +1,7 @@
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.apache.spark.sql.functions.{first, monotonically_increasing_id}
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{FloatType, StructField, StructType}
+
 
 
 object SimpleAPP extends App {
@@ -20,9 +22,7 @@ object SimpleAPP extends App {
       .read
       .option("header", true)
       .csv("src/main/data/%s" format str)
-      //.drop("Indicator")
-    //val tmp_df_year=tmp_df.filter(tmp_df("Period")==="2016")
-    //tmp_df_year.withColumnRenamed("First Tooltip","%s" format str_2)
+      .withColumn("First Tooltip",col("First Tooltip").cast(FloatType))
     val size_df = tmp_df.columns.size
     size_df match{
       case 6 =>
@@ -34,6 +34,7 @@ object SimpleAPP extends App {
           .filter(tmp_df("Period")==="2016")
           .drop("Indicator")
         tmp_df_year.withColumnRenamed("First Tooltip","%s" format str_2)
+
     }
 
   }
@@ -60,16 +61,20 @@ object SimpleAPP extends App {
 
   }
 
+  // Requête sur les dataset
+  val basic_hand  = clean_data("basicHandWashing.csv","% basic handwashing")
+  basic_hand
+    .filter(basic_hand("Dim1")==="Total")
+    .orderBy(desc("% basic handwashing"))
+    .show()
+
+  val basic_drink = clean_data("basicDrinkingWaterServices.csv","% least basic service")
 
 
-  def turn_df(): DataFrame={
-    val df=clean_data("airPollutionDeathRate.csv")
-    df.groupBy("Location")
-      .pivot("Dim2")
-      .agg(first("Dim2"))
 
-  }
 
-  println(turn_df())
+
+
+
 }
 
