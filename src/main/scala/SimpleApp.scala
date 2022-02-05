@@ -1,6 +1,7 @@
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.types.StringType
+import org.apache.spark.sql.functions.monotonically_increasing_id
+import org.apache.spark.sql.types.{StringType, StructType}
 
 object SimpleAPP extends App {
   val spark = SparkSession
@@ -10,18 +11,44 @@ object SimpleAPP extends App {
     .getOrCreate()
   spark.sparkContext.setLogLevel("ERROR")
 
-
-  def clean_data (a:String): DataFrame={
-    val df_name= a
+  /**
+   * clean_data
+   *
+   *  @return DataFrame
+   */
+  def clean_data (str:String,str_2:String): DataFrame={
     val tmp_df = spark
       .read
       .option("header", true)
-      .csv("src/main/data/%s" format a)
-    val tmp_drop_df=tmp_df.drop("Indicator")
-    tmp_drop_df.filter(tmp_drop_df("Period")==="2016")
+      .csv("src/main/data/%s" format str)
+      .drop("Indicator")
+    val tmp_df_year=tmp_df.filter(tmp_df("Period")==="2016")
+    tmp_df_year.withColumnRenamed("First Tooltip","%s" format str_2)
+
   }
 
-  val basicHandWashing = clean_data("basicHandWashing.csv")
+  def merge_df ():DataFrame={
+    val tmp_1= clean_data("mortalityRateUnsafeWash.csv","Mortality UnsafeW 100K")
+      .sort("Location") //Load first csv
+
+    val tmp_2= clean_data("mortalityRatePoisoning.csv","Mortality Poisoning 100K")
+      .sort("Location")
+      .withColumn("rowId1",monotonically_increasing_id()) //Load second csv and add ID column
+
+    val tmp_3=tmp_1.select("Mortality UnsafeW 100K")
+      .withColumn("rowId2",monotonically_increasing_id()) //Extract wanted columns from dataset
+
+    tmp_2.as("tmp_2")
+      .join(tmp_3.as("tmp_3"),tmp_2("rowId1")===tmp_3("rowId2"),"inner")
+      .select("tmp_2.Location","tmp_2.Period","tmp_2.Dim1",
+                    "tmp_2.Mortality Poisoning 100K","tmp_3.Mortality UnsafeW 100K") //Join two data
+
+  }
+
+
+
+  merge_df().show()
 
 
 }
+
