@@ -111,7 +111,7 @@ object SimpleAPP extends App {
     .show()
 
   //---------------------------------------------------------------------------------------------------
-  // Pour 100k habitant les morts attribués à la pollution de l'air,age-standardized (SQL Queries)
+  // Pour 100k habitants les morts attribués à la pollution de l'air,age-standardized (SQL Queries)
   //---------------------------------------------------------------------------------------------------
 
   val air_pollution = clean_data("airPollutionDeathRate.csv")
