@@ -3,7 +3,7 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.FloatType
 
 
-object PollutionApp extends App {
+object SimpleAPP extends App {
   val spark = SparkSession
     .builder()
     .appName(name = "first sparkAPP")
