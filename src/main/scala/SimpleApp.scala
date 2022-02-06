@@ -70,9 +70,9 @@ object SimpleAPP extends App {
    *
    */
 
-  //-----------------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------
   // Le % de population avec l'accès à l'eau potable basique (Search engine)
-  //-----------------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------
   def drink_water(country:String,annee:String):DataFrame={
     val basic_drink = spark
       .read
@@ -86,9 +86,9 @@ object SimpleAPP extends App {
   }
   //drink_water("Albania","2003").show()
 
-    //-----------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------
     // Le % de population avec des moyens de nettoyage des mains basiques à la maison en 2016
-    //-----------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------
   val basic_hand  = clean_data("basicHandWashing.csv","% basic handwashing")
   basic_hand
     .filter(basic_hand("Dim1")==="Total") // Les deux
@@ -103,9 +103,9 @@ object SimpleAPP extends App {
     .orderBy(desc("% basic handwashing"))
     //.show()
 
-  //-----------------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------
   // Pour 100k habitant les morts attribués à la pollution de l'air,age-standardized (SQL Queries)
-  //-----------------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------
 
   val air_pollution= clean_data("airPollutionDeathRate.csv")
   air_pollution.createOrReplaceTempView("air_pollution")
@@ -118,16 +118,24 @@ object SimpleAPP extends App {
     //spark.sql("SELECT Location,Dim2,MAX(Full_value) FROM air_pollution " +
       //                "WHERE air_pollution.Dim1 = 'Female' GROUP BY Location,Dim2").show()
 
-  //Nombre de mort total par groupe de maladie
+  //Nombre de mort total par groupe de maladie (Ici pulmonaire)
 
-    spark.sql("SELECT ")
+  //spark.sql("SELECT Location,SUM(Full_value) AS Pulmonary_Diseases " +
+                      "FROM air_pollution " +
+                      "WHERE air_pollution.Dim2='Trachea, bronchus, lung cancers' " +
+                      "OR air_pollution.Dim2='Lower respiratory infections' " +
+                      "OR air_pollution.Dim2='Chronic obstructive pulmonary disease'" +
+ //                   "GROUP BY Location").show()
 
+  //spark.sql("SELECT Location,SUM(Full_value) AS Heart_Diseases " +
+                    "FROM air_pollution " +
+                    "WHERE air_pollution.Dim2='Ischaemic heart disease' " +
+                    "OR air_pollution.Dim2='Stroke' " +
+ //                 "GROUP BY Location").show()
 
-
-
-
-
-
+  //---------------------------------------------------------------------------------------------------
+  // Nombre de mort pour 100k habitant d'empoisonnement involontaire ou d'un système d'hygiène infecté
+  //---------------------------------------------------------------------------------------------------
 
 
 
