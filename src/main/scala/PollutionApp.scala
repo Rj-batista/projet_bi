@@ -3,7 +3,7 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.FloatType
 
 
-object SimpleAPP extends App {
+object PollutionApp extends App {
   val spark = SparkSession
     .builder()
     .appName(name = "first sparkAPP")
@@ -134,14 +134,15 @@ object SimpleAPP extends App {
     "GROUP BY Location,Dim2").show()
 
   //Nombre de mort total par groupe de maladie (Ici pulmonaire)
-  spark.sql("SELECT Location,SUM(Full_value) AS Pulmonary_Diseases " +
+  spark.sql("SELECT Location,ROUND(SUM(Full_value)) AS Pulmonary_Diseases " +
     "FROM air_pollution " +
     "WHERE air_pollution.Dim2='Trachea, bronchus, lung cancers' " +
     "OR air_pollution.Dim2='Lower respiratory infections' " +
     "OR air_pollution.Dim2='Chronic obstructive pulmonary disease'" +
     "GROUP BY Location").show()
+
   //Nombre de mort total par groupe de maladie (Ici cardiaque)
-  spark.sql("SELECT Location,SUM(Full_value) AS Heart_Diseases " +
+  spark.sql("SELECT Location,ROUND(SUM(Full_value)) AS Heart_Diseases " +
     "FROM air_pollution " +
     "WHERE air_pollution.Dim2='Ischaemic heart disease' " +
     "OR air_pollution.Dim2='Stroke' " +
@@ -153,6 +154,9 @@ object SimpleAPP extends App {
 
   //Nombre min d'empoisonnement involontaire par pays
   val mortality = merge_df()
+    .withColumn("Mortality Poisoning 100K", round(col("Mortality Poisoning 100K"), 2))
+    .withColumn("Mortality UnsafeW 100K", round(col("Mortality UnsafeW 100K"), 2))
+
   mortality
     .groupBy("Location")
     .min("Mortality Poisoning 100K")
@@ -167,6 +171,7 @@ object SimpleAPP extends App {
     .groupBy("Dim1")
     .sum("Mortality UnsafeW 100K", "Mortality Poisoning 100K")
     .show()
+
 
 
 }
